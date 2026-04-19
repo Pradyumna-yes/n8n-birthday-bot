@@ -63,14 +63,22 @@ A separate daily job syncs contacts from Google so you never have to maintain th
 ---
 
 ## 📸 Demo
+### n8n workflow canvas
 
-> *Screenshots / short video go here — add your own once you've set it up*
+The actual workflows running in n8n. Each screenshot shows the node graph you'll see after importing the JSON files.
 
-<!-- Suggested screenshots to add:
-1. The n8n canvas showing the full workflow
-2. A real (or dummy) WhatsApp screenshot of a generated message
-3. The Supabase contacts table
--->
+**Google Contacts Sync** — A simple 4-step pull flow. Trigger → fetch → normalize → upsert. Runs once a day, 30 minutes before the first wish batch so contacts are always fresh.
+![Google Contacts Sync](./docs/Google_Syn_Flow.png)
+
+**Birthday Bot — Daily Wishes** — The daily wish pipeline. Three cron triggers feed into a shared sequence that determines the batch, fetches contacts, filters today's birthdays, checks for duplicates, generates an AI message, sends via Evolution, logs the outcome, and alerts you on both success and failure paths.
+![Google Contacts Sync](./docs/Main_Flow.png)
+> Want to modify the logic? Everything is visual — click any node to edit it. No code rebuild, no redeploy.
+
+**Demo 1 — Friend A receives** (Hinglish, warm & funny):
+![Google Contacts Sync](./docs/Birthday_wish_User.png)
+
+**Demo 2 — Admin A receives** (Update on successful or failure delivery of message):
+![Google Contacts Sync](./docs/Birthday_wish_admin.png)
 
 ---
 
