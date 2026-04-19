@@ -1,0 +1,212 @@
+{
+  "name": "Google Contacts Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "c11952bd-be9d-407d-a734-d2402db52dbb",
+      "name": "Daily at 18:00 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        224
+      ],
+      "notes": "Runs 30 min before the India birthday batch"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "fields": [
+          "names",
+          "phoneNumbers",
+          "emailAddresses",
+          "birthdays"
+        ],
+        "options": {}
+      },
+      "id": "1b33fc0c-a5c1-48d5-a333-bb9be5033ae5",
+      "name": "Google: Get All Contacts",
+      "type": "n8n-nodes-base.googleContacts",
+      "typeVersion": 1,
+      "position": [
+        608,
+        224
+      ],
+      "credentials": {
+        "googleContactsOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Contacts account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Google contacts — handles your real data format\nconst COUNTRY_TZ = { IN: 'Asia/Kolkata', IE: 'Europe/Dublin' };\nconst DIAL_TO_COUNTRY = [\n  { dial: '353', country: 'IE' },\n  { dial: '91', country: 'IN' },\n];\n\nfunction extractFirstPhone(phoneNumbers) {\n  if (!phoneNumbers) return null;\n  // Try types in priority order\n  const types = ['mobile', 'home', 'work', 'other', 'main', 'undefined'];\n  for (const type of types) {\n    const arr = phoneNumbers[type];\n    if (Array.isArray(arr) && arr.length > 0 && arr[0]) return arr[0];\n  }\n  // Fallback: first value of any key\n  for (const key of Object.keys(phoneNumbers)) {\n    const arr = phoneNumbers[key];\n    if (Array.isArray(arr) && arr.length > 0 && arr[0]) return arr[0];\n  }\n  return null;\n}\n\nfunction normalizePhone(raw) {\n  if (!raw || typeof raw !== 'string') return null;\n  let cleaned = raw.trim();\n  \n  // Skip junk like \"tel:17565137\" or emergency numbers\n  if (cleaned.startsWith('tel:')) return null;\n  if (/^\\d{3}$/.test(cleaned)) return null; // e.g. \"112\"\n  if (/^1800/.test(cleaned.replace(/\\D/g, ''))) return null; // toll-free\n  \n  // Strip everything except digits and leading +\n  cleaned = cleaned.replace(/[^\\d+]/g, '');\n  \n  // Handle 00 prefix (international)\n  if (cleaned.startsWith('00')) cleaned = '+' + cleaned.slice(2);\n  \n  // No country code → assume India (+91) since most contacts are Indian\n  if (!cleaned.startsWith('+')) {\n    // Strip leading 0 (local India format like 08194...)\n    if (cleaned.startsWith('0')) cleaned = cleaned.slice(1);\n    cleaned = '+91' + cleaned;\n  }\n  \n  const e164 = cleaned.replace(/^\\+/, '');\n  \n  // Sanity check length (E.164 is 8-15 digits)\n  if (e164.length < 10 || e164.length > 15) return null;\n  \n  // Match dial code (check longer codes first: 353 before 91)\n  for (const { dial, country } of DIAL_TO_COUNTRY) {\n    if (e164.startsWith(dial)) {\n      return { e164, country, timezone: COUNTRY_TZ[country] };\n    }\n  }\n  return null; // Not IN or IE\n}\n\nfunction parseBirthday(bday) {\n  if (!bday) return null;\n  // Your format: \"5/7/1998\" or \"11/8/undefined\" (M/D/YYYY)\n  if (typeof bday === 'string') {\n    const parts = bday.split('/');\n    if (parts.length !== 3) return null;\n    const [m, d, y] = parts;\n    const month = parseInt(m);\n    const day = parseInt(d);\n    const year = parseInt(y);\n    if (!month || !day || month > 12 || day > 31) return null;\n    const validYear = (isNaN(year) || year < 1900) ? 1900 : year;\n    return `${String(validYear).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;\n  }\n  // Object format {year, month, day}\n  if (typeof bday === 'object' && bday.month && bday.day) {\n    const year = bday.year || 1900;\n    return `${String(year).padStart(4, '0')}-${String(bday.month).padStart(2, '0')}-${String(bday.day).padStart(2, '0')}`;\n  }\n  return null;\n}\n\nconst results = [];\nconst skipped = { noPhone: 0, noBirthday: 0, badPhone: 0, outOfScope: 0 };\n\nfor (const item of $input.all()) {\n  const person = item.json;\n  \n  const name = person.names?.displayName\n    || person.names?.givenName\n    || '(no name)';\n  \n  const phoneRaw = extractFirstPhone(person.phoneNumbers);\n  if (!phoneRaw) { skipped.noPhone++; continue; }\n  \n  const phone = normalizePhone(phoneRaw);\n  if (!phone) {\n    if (phoneRaw.includes('+')) skipped.outOfScope++;\n    else skipped.badPhone++;\n    continue;\n  }\n  \n  const birthdayStr = parseBirthday(person.birthdays);\n  if (!birthdayStr) { skipped.noBirthday++; continue; }\n  \n  const emailRaw = person.emailAddresses;\n  let email = null;\n  if (emailRaw && typeof emailRaw === 'object') {\n    for (const key of Object.keys(emailRaw)) {\n      if (Array.isArray(emailRaw[key]) && emailRaw[key][0]) {\n        email = emailRaw[key][0];\n        break;\n      }\n    }\n  }\n  \n  results.push({\n    json: {\n      google_resource_name: person.resourceName,\n      full_name: name,\n      phone_e164: phone.e164,\n      email,\n      birthday: birthdayStr,\n      country_code: phone.country,\n      timezone: phone.timezone,\n      source: 'google',\n      is_active: true,\n    },\n  });\n}\n\nconsole.log('Sync summary:', { kept: results.length, ...skipped });\n\nif (results.length === 0) {\n  return [{ json: { __empty: true, skipped } }];\n}\n\nreturn results;"
+      },
+      "id": "c8867af9-9737-49eb-a56b-3f7a5809ae01",
+      "name": "Normalize + Filter Contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "not-empty",
+              "leftValue": "={{ $json.__empty }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5a22bc46-0a55-40ad-b8d0-47b1e9d6420a",
+      "name": "Have Contacts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1104,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📇 Google Contacts Sync\n\nRuns daily at 18:00 UTC (30 min before India batch).\n\n**What it does:**\n1. Fetches all contacts from Google\n2. Keeps only IN (+91) and IE (+353) contacts that have both a phone and a birthday\n3. Upserts into Supabase — matches by `google_resource_name` OR `phone_e164`\n4. Never overwrites personalization fields on existing rows\n\n**After first run:** go to Supabase Table Editor → `contacts` and fill in `tone`, `language`, `relationship`, `inside_jokes` per contact.",
+        "height": 260,
+        "width": 380
+      },
+      "id": "09ad2448-701b-4d82-bc0c-6046b5becbb9",
+      "name": "Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/contacts?on_conflict=phone_e164",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n  \"Content-Type\": \"application/json\",\n  \"Prefer\": \"resolution=merge-duplicates,return=minimal\"\n}) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  google_resource_name: $json.google_resource_name,\n  full_name: $json.full_name,\n  phone_e164: $json.phone_e164,\n  email: $json.email,\n  birthday: $json.birthday,\n  country_code: $json.country_code,\n  timezone: $json.timezone,\n  source: \"google\"\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1552,
+        128
+      ],
+      "id": "fe055baf-03a3-4588-881a-a27bd00d7f55",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily at 18:00 UTC": {
+      "main": [
+        [
+          {
+            "node": "Google: Get All Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google: Get All Contacts": {
+      "main": [
+        [
+          {
+            "node": "Normalize + Filter Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize + Filter Contacts": {
+      "main": [
+        [
+          {
+            "node": "Have Contacts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Have Contacts?": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "70210918-09c6-4c71-8b0c-2f709e71743b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "bo3qe7D5ACdODul9",
+  "tags": [
+    {
+      "name": "birthday-bot",
+      "id": "GLnaQ1gV13RRw2rL",
+      "createdAt": "2026-04-18T23:16:08.683Z",
+      "updatedAt": "2026-04-18T23:16:08.683Z"
+    },
+    {
+      "name": "sync",
+      "id": "nxPBKsMCkWM8u3iO",
+      "createdAt": "2026-04-18T23:16:08.693Z",
+      "updatedAt": "2026-04-18T23:16:08.693Z"
+    },
+    {
+      "name": "production",
+      "id": "72qGFOO0tybuOUru",
+      "createdAt": "2026-04-18T23:16:51.205Z",
+      "updatedAt": "2026-04-18T23:16:51.205Z"
+    }
+  ]
+}

@@ -1,0 +1,711 @@
+{
+  "name": "Birthday-Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cd256b85-37be-4a42-912e-6a43cab4cc56",
+      "name": "Cron: 00:00 IST (India)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -128
+      ],
+      "notes": "18:30 UTC = 00:00 IST"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "940fce57-748e-446c-ac7b-e577915088de",
+      "name": "Cron: 00:00 IE (summer)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        80
+      ],
+      "notes": "23:00 UTC = 00:00 IE during DST (IST)"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * *"
+            }
+          ]
+        }
+      },
+      "id": "28b4ece0-9721-487d-b18c-de80024cc9e2",
+      "name": "Cron: 00:00 IE (winter)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        288
+      ],
+      "notes": "00:00 UTC = 00:00 IE during winter (GMT)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// TEMPORARY: hardcoded to IN for testing. Revert after test.\nconst country = 'IN';\n\nconst tz = country === 'IN' ? 'Asia/Kolkata' : 'Europe/Dublin';\nconst now = new Date();\nconst localDateStr = new Intl.DateTimeFormat('en-CA', {\n  timeZone: tz,\n  year: 'numeric',\n  month: '2-digit',\n  day: '2-digit',\n}).format(now);\n\nconst [yearStr, monthStr, dayStr] = localDateStr.split('-');\nconst year = parseInt(yearStr);\nconst month = parseInt(monthStr);\nconst day = parseInt(dayStr);\nconst monthDay = `${monthStr}-${dayStr}`;\n\nconst isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;\nconst includesFeb29 = month === 3 && day === 1 && !isLeapYear;\n\nreturn [{\n  json: {\n    country,\n    timezone: tz,\n    today: localDateStr,\n    monthDay,\n    includesFeb29,\n  },\n}];"
+      },
+      "id": "3bbe4271-65b8-484a-9763-5ddbd33871ac",
+      "name": "Determine Batch + Date",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const batchInfo = $('Determine Batch + Date').first().json;\nconst items = $input.all();\n\nconst [targetMonth, targetDay] = batchInfo.monthDay.split('-').map(Number);\n\nconst matches = [];\nitems.forEach((item, index) => {\n  const c = item.json;\n  if (!c.birthday) return;\n  \n  const [_, m, d] = c.birthday.split('-').map(Number);\n  const isBirthdayToday = (m === targetMonth && d === targetDay);\n  const isFeb29Fallback = (batchInfo.includesFeb29 && m === 2 && d === 29);\n  \n  if (isBirthdayToday || isFeb29Fallback) {\n    matches.push({\n      json: {\n        ...c,\n        today: batchInfo.today,\n        monthDay: batchInfo.monthDay,\n        batchInfo,\n      },\n      pairedItem: { item: index },  // ← THIS is what was missing\n    });\n  }\n});\n\nif (matches.length === 0) {\n  return [{\n    json: { __no_birthdays: true, batchInfo },\n    pairedItem: { item: 0 },\n  }];\n}\n\nreturn matches;"
+      },
+      "id": "591ad87a-8dcf-4619-b652-d9e664b8e1c1",
+      "name": "Filter Today's Birthdays",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "no-birthdays-check",
+              "leftValue": "={{ $json.__no_birthdays }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9efd2cf7-340f-492a-8c5f-fdfc29cec1ae",
+      "name": "Any Birthdays Today?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2128,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dupRows = $input.all();\nconst contact = $('Filter Today\\'s Birthdays').item.json;\n\nconst alreadySent = dupRows.some(r => r.json && r.json.id);\n\nreturn [{\n  json: {\n    ...contact,\n    __alreadySent: alreadySent,\n  },\n  pairedItem: { item: 0 },\n}];"
+      },
+      "id": "25aa1e3d-e068-49dc-ad19-76ef63f7f588",
+      "name": "Merge Duplicate Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "not-already-sent",
+              "leftValue": "={{ $json.__alreadySent }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a37f7c6b-89d1-4bf2-a2dd-da1f33cbe992",
+      "name": "Not Already Sent?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3088,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"Authorization\": \"Bearer YOUR_DEEPSEEK_API_KEY\",\n\n  \"Content-Type\": \"application/json\"\n\n}) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"deepseek-chat\",\n  \"temperature\": 0.9,\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a thoughtful friend writing a personal WhatsApp birthday message.\\n\\nRules:\\n- Output ONLY the message text. No preamble, no quotes, no sign-off from you.\\n- Length: 2-4 sentences. Short and sincere beats long and generic.\\n- Match the requested tone and language exactly.\\n- If inside jokes are provided, weave ONE of them in naturally. Don't force it.\\n- Sound like a human texting, not a Hallmark card. No cliches like 'may all your dreams come true'.\\n- Use emojis sparingly (max 2), only if the tone calls for it.\\n- If language is Hinglish, mix Hindi and English naturally. If Irish English, use casual Irish phrasing but don't caricature.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a birthday message for:\\n- Name: {{ $json.full_name }}\\n- Relationship to me: {{ $json.relationship || 'friend' }}\\n- Tone: {{ $json.tone || 'warm and friendly' }}\\n- Language: {{ $json.language || 'English' }}\\n- Inside jokes / shared memories: {{ $json.inside_jokes || '(none)' }}\\n\\nRemember: output ONLY the message, nothing else.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "0583a760-76af-4da8-83f3-e2630a190212",
+      "name": "DeepSeek: Generate Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3328,
+        80
+      ],
+      "notes": "Uses Header Auth credential: name=Authorization, value=Bearer <key>"
+    },
+    {
+      "parameters": {
+        "jsCode": "const contact = $('Merge Duplicate Check').item.json;\nconst apiResponse = $input.first().json;\n\nlet text = apiResponse?.choices?.[0]?.message?.content?.trim() || '';\ntext = text.replace(/^[\"']|[\"']$/g, '').trim();\n\nif (!text) {\n  throw new Error('DeepSeek returned empty message');\n}\n\nreturn [{\n  json: {\n    ...contact,\n    generatedMessage: text,\n  },\n  pairedItem: { item: 0 },\n}];"
+      },
+      "id": "3e6852f4-5426-41e0-bb4a-6f02c25096dd",
+      "name": "Extract AI Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://your-evolution-instance.example.com/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ \"apikey\": \"YOUR_EVOLUTION_API_KEY\", \"Content-Type\": \"application/json\" }) }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Merge Duplicate Check').item.json.phone_e164 }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $('Extract AI Message').item.json.generatedMessage }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "1bed19b9-5f62-47fd-b69e-3c44b6381db3",
+      "name": "Evolution: Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3824,
+        80
+      ],
+      "onError": "continueErrorOutput",
+      "notes": "Replace YOUR_EVOLUTION_URL and YOUR_INSTANCE_NAME in the URL above. Uses Header Auth credential: name=apikey, value=<key>"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build admin alert payload\nconst contact = $('Extract AI Message').item.json;\nconst error = $input.first().json?.error || $input.first().json;\n\nconst adminNumbers = ['353XXXXXXXXX', '91XXXXXXXXXX'];\nconst alertText = `🚨 *Birthday Bot Alert*\\n\\nFailed to send birthday message after 3 attempts.\\n\\n*Contact:* ${contact.full_name}\\n*Phone:* ${contact.phone_e164}\\n*Error:* ${JSON.stringify(error).substring(0, 300)}\\n\\n_${new Date().toISOString()}_`;\n\nreturn adminNumbers.map(number => ({\n  json: {\n    adminNumber: number,\n    alertText,\n  },\n}));"
+      },
+      "id": "47f230e0-3d1b-48b9-9c7a-2c3b0e31f104",
+      "name": "Build Admin Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4544,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://your-evolution-instance.example.com/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n}) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=={{ JSON.stringify({\n  \"number\": $json.adminNumber,\n  \"text\": $json.alertText\n}) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "8780b712-7ed2-4b31-b083-d8f42aa06980",
+      "name": "Notify Admins",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4784,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🎂 Birthday Bot Flow\n\n**Triggers:**\n- 18:30 UTC → 00:00 IST (India)\n- 23:00 UTC → 00:00 IE (summer DST)\n- 00:00 UTC → 00:00 IE (winter)\n\n**Flow:**\n1. Determine country & date\n2. Fetch active contacts from Supabase\n3. Filter to today's birthdays (handles Feb 29)\n4. Check if already sent today (idempotent)\n5. Generate personalized message via DeepSeek\n6. Send via Evolution API (retry up to 3x)\n7. Log success or failure\n8. On failure → alert admins\n\n**Before activating:**\n- Replace `YOUR_EVOLUTION_URL` and `YOUR_INSTANCE_NAME` in both HTTP Request nodes\n- Set up 3 credentials (see README)\n- Run the Supabase schema SQL",
+        "height": 320,
+        "width": 400
+      },
+      "id": "31926eb9-2271-451e-8c13-18b502059156",
+      "name": "Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://your-evolution-instance.example.com/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n  \"apikey\": \"YOUR_EVOLUTION_API_KEY\",\n  \"Content-Type\": \"application/json\"\n}) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  \"number\": \"91XXXXXXXXXX\",\n  \"text\": \"Test from Birthday Bot 🎂\"\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4544,
+        -928
+      ],
+      "id": "19137e29-d7ea-4520-b5e0-55bbde7d6562",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/contacts?is_active=eq.true&country_code=eq.{{ $json.country }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        80
+      ],
+      "id": "16af5a98-1d0e-4450-aa1c-868099c86587",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/birthday_log",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n}) }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=contact_id",
+              "value": "={{ $('Extract AI Message').item.json.id }}"
+            },
+            {
+              "name": "contact_name",
+              "value": "={{ $('Extract AI Message').item.json.full_name }}"
+            },
+            {
+              "name": "phone_e164",
+              "value": "={{ $('Extract AI Message').item.json.phone_e164 }}"
+            },
+            {
+              "name": "sent_on",
+              "value": "={{ $('Extract AI Message').item.json.today }}"
+            },
+            {
+              "name": "status",
+              "value": "status"
+            },
+            {
+              "name": "attempt_count",
+              "value": "1"
+            },
+            {
+              "name": "message_preview",
+              "value": "={{ $('Extract AI Message').item.json.generatedMessage.substring(0, 200) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4160,
+        -64
+      ],
+      "id": "9e373637-575f-4fe8-9595-237f0b171849",
+      "name": "Log Success",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/birthday_log",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n}) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=={{ JSON.stringify({ contact_id: $('Extract AI Message').item.json.id, contact_name: $('Extract AI Message').item.json.full_name, phone_e164: $('Extract AI Message').item.json.phone_e164, sent_on: $('Extract AI Message').item.json.today, status: \"failed\", attempt_count: 3, error_message: \"Evolution send failed\" }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4160,
+        192
+      ],
+      "id": "2d95f4f8-a6e7-4ac0-81ae-e47ce98ded95",
+      "name": "Log Failure"
+    },
+    {
+      "parameters": {
+        "url": "=https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/birthday_log",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({\n  \"contact_id\": \"eq.\" + $json.id,\n  \"sent_on\": \"eq.\" + $json.today,\n  \"status\": \"eq.success\",\n  \"select\": \"id\"\n}) }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({\n\n  \"apikey\": \"YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n  \"Authorization\": \"Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY\",\n\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2416,
+        208
+      ],
+      "id": "24f726a1-c7f5-4a62-af45-c33d3b2798b5",
+      "name": "Check Duplicate Send",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const contact = $('Extract AI Message').item.json;\n\nconst adminNumbers = ['353XXXXXXXXX', '91XXXXXXXXXX'];\nconst alertText = `🎂 *Birthday Bot — Sent!*\\n\\n✅ Birthday wish sent to:\\n*${contact.full_name}* (${contact.phone_e164})\\n\\n*Message:*\\n_${contact.generatedMessage}_\\n\\n_${new Date().toISOString()}_`;\n\nreturn adminNumbers.map(number => ({\n  json: { adminNumber: number, alertText },\n  pairedItem: { item: 0 },\n}));"
+      },
+      "id": "e1019a57-36c9-4828-9e1c-b4ed2a4642dc",
+      "name": "Build Admin Alert1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4448,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://your-evolution-instance.example.com/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "YOUR_EVOLUTION_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=number",
+              "value": "={{ $json.adminNumber }}"
+            },
+            {
+              "name": "=text",
+              "value": "=={{ $json.alertText }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "6f322fc1-1365-4f9b-a2b1-5eb5c7861d07",
+      "name": "Notify Admins1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4736,
+        -160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron: 00:00 IST (India)": {
+      "main": [
+        [
+          {
+            "node": "Determine Batch + Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron: 00:00 IE (summer)": {
+      "main": [
+        [
+          {
+            "node": "Determine Batch + Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron: 00:00 IE (winter)": {
+      "main": [
+        [
+          {
+            "node": "Determine Batch + Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Batch + Date": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Today's Birthdays": {
+      "main": [
+        [
+          {
+            "node": "Any Birthdays Today?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Birthdays Today?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check Duplicate Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Not Already Sent?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Already Sent?": {
+      "main": [
+        [
+          {
+            "node": "DeepSeek: Generate Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek: Generate Message": {
+      "main": [
+        [
+          {
+            "node": "Extract AI Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract AI Message": {
+      "main": [
+        [
+          {
+            "node": "Evolution: Send WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evolution: Send WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Admin Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Admins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Filter Today's Birthdays",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Failure": {
+      "main": [
+        [
+          {
+            "node": "Build Admin Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate Send": {
+      "main": [
+        [
+          {
+            "node": "Merge Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Admin Alert1": {
+      "main": [
+        [
+          {
+            "node": "Notify Admins1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Build Admin Alert1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0a6f2dd3-2315-405c-add5-c62401c71c7f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "fsspm20h2mLkSqhT",
+  "tags": [
+    {
+      "name": "birthday-bot",
+      "id": "GLnaQ1gV13RRw2rL",
+      "createdAt": "2026-04-18T23:16:08.683Z",
+      "updatedAt": "2026-04-18T23:16:08.683Z"
+    },
+    {
+      "name": "production",
+      "id": "72qGFOO0tybuOUru",
+      "createdAt": "2026-04-18T23:16:51.205Z",
+      "updatedAt": "2026-04-18T23:16:51.205Z"
+    }
+  ]
+}
