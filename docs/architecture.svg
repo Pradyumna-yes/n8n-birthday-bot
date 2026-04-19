@@ -1,172 +1,246 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="'Inter', system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1100" font-family="'Inter', -apple-system, system-ui, sans-serif">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f0f23"/>
-      <stop offset="1" stop-color="#1a1a3e"/>
-    </linearGradient>
-    <linearGradient id="cron-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f59e0b"/>
+    <radialGradient id="bg-grad" cx="50%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#1a1f2e"/>
+      <stop offset="1" stop-color="#0a0e18"/>
+    </radialGradient>
+
+    <linearGradient id="g-cron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
       <stop offset="1" stop-color="#d97706"/>
     </linearGradient>
-    <linearGradient id="n8n-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ec4899"/>
-      <stop offset="1" stop-color="#be185d"/>
+    <linearGradient id="g-google" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#2563eb"/>
     </linearGradient>
-    <linearGradient id="db-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#10b981"/>
-      <stop offset="1" stop-color="#047857"/>
+    <linearGradient id="g-n8n" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f472b6"/>
+      <stop offset="1" stop-color="#db2777"/>
     </linearGradient>
-    <linearGradient id="ai-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8b5cf6"/>
-      <stop offset="1" stop-color="#6d28d9"/>
+    <linearGradient id="g-supabase" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#059669"/>
     </linearGradient>
-    <linearGradient id="wa-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#25d366"/>
-      <stop offset="1" stop-color="#128c7e"/>
+    <linearGradient id="g-ai" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4b5fd"/>
+      <stop offset="1" stop-color="#7c3aed"/>
     </linearGradient>
-    <linearGradient id="google-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4285f4"/>
-      <stop offset="1" stop-color="#1a73e8"/>
+    <linearGradient id="g-wa" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ade80"/>
+      <stop offset="1" stop-color="#16a34a"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
+
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ec4899"/>
+    </marker>
+    <marker id="arr-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arr-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/>
+    </marker>
+
+    <filter id="card-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
       <feMerge>
-        <feMergeNode in="blur"/>
+        <feMergeNode in="b"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
-    </marker>
+
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" opacity="0.05"/>
+    </pattern>
   </defs>
 
-  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect width="1400" height="1100" fill="url(#bg-grad)"/>
+  <rect width="1400" height="1100" fill="url(#dots)"/>
 
-  <!-- Title -->
-  <text x="600" y="50" text-anchor="middle" fill="#f3f4f6" font-size="28" font-weight="700">Birthday Bot — System Architecture</text>
-  <text x="600" y="78" text-anchor="middle" fill="#9ca3af" font-size="14">AI-powered personalized WhatsApp birthday wishes</text>
+  <text x="700" y="70" text-anchor="middle" fill="#f9fafb" font-size="36" font-weight="800" letter-spacing="-1">🎂 Birthday Bot</text>
+  <text x="700" y="100" text-anchor="middle" fill="#94a3b8" font-size="15" font-weight="400">A personalized WhatsApp wish. Every friend. Every birthday. On autopilot.</text>
 
-  <!-- LAYER 1: Triggers -->
-  <text x="80" y="130" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">SCHEDULED TRIGGERS</text>
+  <g font-family="'Inter', sans-serif">
+    <text x="140" y="175" fill="#64748b" font-size="10" font-weight="700" letter-spacing="3">① TRIGGER</text>
+    <text x="430" y="175" fill="#64748b" font-size="10" font-weight="700" letter-spacing="3">② ORCHESTRATE</text>
+    <text x="820" y="175" fill="#64748b" font-size="10" font-weight="700" letter-spacing="3">③ GENERATE</text>
+    <text x="1130" y="175" fill="#64748b" font-size="10" font-weight="700" letter-spacing="3">④ DELIVER</text>
+  </g>
+
+  <line x1="330" y1="185" x2="330" y2="880" stroke="#334155" stroke-width="1" stroke-dasharray="3 6"/>
+  <line x1="720" y1="185" x2="720" y2="880" stroke="#334155" stroke-width="1" stroke-dasharray="3 6"/>
+  <line x1="1060" y1="185" x2="1060" y2="880" stroke="#334155" stroke-width="1" stroke-dasharray="3 6"/>
+
+  <g filter="url(#card-glow)">
+    <rect x="70" y="220" width="230" height="130" rx="20" fill="#1e1611" stroke="url(#g-cron)" stroke-width="1.5"/>
+    <circle cx="125" cy="265" r="24" fill="url(#g-cron)" opacity="0.2"/>
+    <text x="125" y="275" text-anchor="middle" font-size="24">⏰</text>
+    <text x="160" y="253" fill="#fbbf24" font-size="10" font-weight="700" letter-spacing="2">SCHEDULER</text>
+    <text x="160" y="276" fill="#f8fafc" font-size="17" font-weight="700">Daily Cron</text>
+    <text x="90" y="310" fill="#cbd5e1" font-size="12">3 schedules per day</text>
+    <text x="90" y="330" fill="#94a3b8" font-size="11">Tuned to midnight per timezone</text>
+  </g>
+
+  <g filter="url(#card-glow)">
+    <rect x="70" y="460" width="230" height="130" rx="20" fill="#0f1a2e" stroke="url(#g-google)" stroke-width="1.5"/>
+    <circle cx="125" cy="505" r="24" fill="url(#g-google)" opacity="0.2"/>
+    <text x="125" y="515" text-anchor="middle" font-size="24">📇</text>
+    <text x="160" y="493" fill="#60a5fa" font-size="10" font-weight="700" letter-spacing="2">SOURCE</text>
+    <text x="160" y="516" fill="#f8fafc" font-size="17" font-weight="700">Google Contacts</text>
+    <text x="90" y="550" fill="#cbd5e1" font-size="12">Your phone book, auto-synced</text>
+    <text x="90" y="570" fill="#94a3b8" font-size="11">OAuth pulls names &amp; birthdays</text>
+  </g>
+
+  <g filter="url(#card-glow)">
+    <rect x="370" y="220" width="320" height="670" rx="24" fill="#1c1024" stroke="url(#g-n8n)" stroke-width="1.8"/>
+  </g>
+
+  <circle cx="420" cy="270" r="28" fill="url(#g-n8n)" opacity="0.22"/>
+  <text x="420" y="280" text-anchor="middle" font-size="28">⚙️</text>
+  <text x="460" y="260" fill="#f472b6" font-size="10" font-weight="700" letter-spacing="2">ORCHESTRATOR</text>
+  <text x="460" y="282" fill="#f8fafc" font-size="22" font-weight="800">n8n</text>
+  <text x="460" y="304" fill="#94a3b8" font-size="11">Visual workflow engine</text>
+
+  <line x1="395" y1="330" x2="665" y2="330" stroke="#4a1d4e" stroke-width="1"/>
+  <text x="530" y="354" text-anchor="middle" fill="#f472b6" font-size="10" font-weight="700" letter-spacing="2">DAILY WORKFLOW</text>
+
   <g>
-    <rect x="80" y="145" width="220" height="70" rx="12" fill="url(#cron-grad)" opacity="0.95"/>
-    <text x="190" y="172" text-anchor="middle" fill="white" font-size="14" font-weight="600">⏰ Daily Cron</text>
-    <text x="190" y="192" text-anchor="middle" fill="#fff8e7" font-size="11">18:00 UTC · Google sync</text>
-    <text x="190" y="206" text-anchor="middle" fill="#fff8e7" font-size="11">18:30/23:00/00:00 UTC · wishes</text>
+    <rect x="395" y="378" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="408" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="413" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">1</text>
+    <text x="455" y="402" fill="#f8fafc" font-size="13" font-weight="600">Wake up &amp; figure out today</text>
+    <text x="455" y="422" fill="#94a3b8" font-size="11">Which timezone? What's today's date?</text>
   </g>
+  <path d="M 530 445 L 530 460" stroke="#ec4899" stroke-width="2" marker-end="url(#arr-pink)"/>
 
-  <!-- LAYER 2: Google Contacts -->
-  <text x="80" y="260" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">SOURCE</text>
   <g>
-    <rect x="80" y="275" width="220" height="80" rx="12" fill="url(#google-grad)" opacity="0.95"/>
-    <text x="190" y="304" text-anchor="middle" fill="white" font-size="14" font-weight="600">📇 Google Contacts</text>
-    <text x="190" y="324" text-anchor="middle" fill="#dbeafe" font-size="11">Names · phones · birthdays</text>
-    <text x="190" y="340" text-anchor="middle" fill="#dbeafe" font-size="11">Filter: IN (+91) &amp; IE (+353)</text>
+    <rect x="395" y="465" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="495" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="500" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">2</text>
+    <text x="455" y="489" fill="#f8fafc" font-size="13" font-weight="600">Pull contacts &amp; find birthdays</text>
+    <text x="455" y="509" fill="#94a3b8" font-size="11">Query Supabase for today's matches</text>
   </g>
+  <path d="M 530 532 L 530 547" stroke="#ec4899" stroke-width="2" marker-end="url(#arr-pink)"/>
 
-  <!-- Arrow Google → n8n -->
-  <path d="M 300 315 Q 380 315 420 315" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)" stroke-dasharray="4 4"/>
-
-  <!-- LAYER 3: n8n Orchestrator (center) -->
-  <text x="560" y="130" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">ORCHESTRATOR</text>
-  <g filter="url(#glow)">
-    <rect x="420" y="145" width="360" height="440" rx="16" fill="url(#n8n-grad)" opacity="0.15" stroke="#ec4899" stroke-width="1.5"/>
-    <text x="600" y="175" text-anchor="middle" fill="#f9a8d4" font-size="16" font-weight="700">n8n Workflows</text>
-    <text x="600" y="194" text-anchor="middle" fill="#fce7f3" font-size="11" opacity="0.8">Self-hosted · Docker</text>
-
-    <!-- Node blocks inside n8n -->
-    <rect x="445" y="215" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="237" text-anchor="middle" fill="#fce7f3" font-size="12">1 · Determine batch &amp; date (timezone-aware)</text>
-
-    <rect x="445" y="260" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="282" text-anchor="middle" fill="#fce7f3" font-size="12">2 · Fetch active contacts from Supabase</text>
-
-    <rect x="445" y="305" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="327" text-anchor="middle" fill="#fce7f3" font-size="12">3 · Filter today's birthdays (leap-year aware)</text>
-
-    <rect x="445" y="350" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="372" text-anchor="middle" fill="#fce7f3" font-size="12">4 · Skip if already wished today</text>
-
-    <rect x="445" y="395" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="417" text-anchor="middle" fill="#fce7f3" font-size="12">5 · Generate personalized message (AI)</text>
-
-    <rect x="445" y="440" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="462" text-anchor="middle" fill="#fce7f3" font-size="12">6 · Send WhatsApp via Evolution</text>
-
-    <rect x="445" y="485" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="507" text-anchor="middle" fill="#fce7f3" font-size="12">7 · Log outcome to Supabase</text>
-
-    <rect x="445" y="530" width="310" height="34" rx="6" fill="#ec4899" opacity="0.25" stroke="#ec4899" stroke-width="1"/>
-    <text x="600" y="552" text-anchor="middle" fill="#fce7f3" font-size="12">8 · Alert admin on success / failure</text>
-  </g>
-
-  <!-- Arrow Cron → n8n -->
-  <path d="M 300 180 Q 380 180 420 220" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-
-  <!-- LAYER 4: Supabase (right top) -->
-  <text x="850" y="130" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">DATABASE</text>
   <g>
-    <rect x="850" y="145" width="270" height="140" rx="12" fill="url(#db-grad)" opacity="0.95"/>
-    <text x="985" y="175" text-anchor="middle" fill="white" font-size="14" font-weight="600">🗄 Supabase (Postgres)</text>
-    <line x1="870" y1="188" x2="1100" y2="188" stroke="white" opacity="0.3"/>
-    <text x="870" y="208" fill="#d1fae5" font-size="11">• contacts</text>
-    <text x="1090" y="208" text-anchor="end" fill="#d1fae5" font-size="10" opacity="0.8">names · phones · tone · language</text>
-    <text x="870" y="228" fill="#d1fae5" font-size="11">• birthday_log</text>
-    <text x="1090" y="228" text-anchor="end" fill="#d1fae5" font-size="10" opacity="0.8">attempts · status · errors</text>
-    <text x="870" y="248" fill="#d1fae5" font-size="11">• sync_log</text>
-    <text x="1090" y="248" text-anchor="end" fill="#d1fae5" font-size="10" opacity="0.8">google sync audits</text>
-    <text x="985" y="272" text-anchor="middle" fill="#a7f3d0" font-size="10" opacity="0.8">idempotent · one wish per person per day</text>
+    <rect x="395" y="552" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="582" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="587" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">3</text>
+    <text x="455" y="576" fill="#f8fafc" font-size="13" font-weight="600">Check: already wished today?</text>
+    <text x="455" y="596" fill="#94a3b8" font-size="11">Skip duplicates — idempotent logic</text>
   </g>
+  <path d="M 530 619 L 530 634" stroke="#ec4899" stroke-width="2" marker-end="url(#arr-pink)"/>
 
-  <!-- Arrow n8n ↔ Supabase -->
-  <path d="M 780 280 L 850 215" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <path d="M 850 245 L 780 310" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-
-  <!-- LAYER 5: DeepSeek (right middle) -->
-  <text x="850" y="320" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">AI ENGINE</text>
   <g>
-    <rect x="850" y="335" width="270" height="100" rx="12" fill="url(#ai-grad)" opacity="0.95"/>
-    <text x="985" y="365" text-anchor="middle" fill="white" font-size="14" font-weight="600">🤖 DeepSeek API</text>
-    <text x="985" y="387" text-anchor="middle" fill="#ede9fe" font-size="11">Tone · language · inside jokes</text>
-    <text x="985" y="405" text-anchor="middle" fill="#ede9fe" font-size="11">→ unique message per contact</text>
-    <text x="985" y="424" text-anchor="middle" fill="#c4b5fd" font-size="10" opacity="0.8">OpenAI-compatible · deepseek-chat</text>
+    <rect x="395" y="639" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="669" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="674" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">4</text>
+    <text x="455" y="663" fill="#f8fafc" font-size="13" font-weight="600">Ask AI to write the message</text>
+    <text x="455" y="683" fill="#94a3b8" font-size="11">Using their tone, language &amp; jokes</text>
   </g>
+  <path d="M 530 706 L 530 721" stroke="#ec4899" stroke-width="2" marker-end="url(#arr-pink)"/>
 
-  <!-- Arrow n8n ↔ DeepSeek -->
-  <path d="M 780 412 L 850 395" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <path d="M 850 425 L 780 432" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-
-  <!-- LAYER 6: Evolution + WhatsApp (right bottom) -->
-  <text x="850" y="470" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">DELIVERY</text>
   <g>
-    <rect x="850" y="485" width="270" height="100" rx="12" fill="url(#wa-grad)" opacity="0.95"/>
-    <text x="985" y="515" text-anchor="middle" fill="white" font-size="14" font-weight="600">💬 Evolution API</text>
-    <text x="985" y="537" text-anchor="middle" fill="#d1fae5" font-size="11">Self-hosted WhatsApp gateway</text>
-    <text x="985" y="555" text-anchor="middle" fill="#d1fae5" font-size="11">→ direct message to contact</text>
-    <text x="985" y="574" text-anchor="middle" fill="#a7f3d0" font-size="10" opacity="0.8">3× retry · admin alert on failure</text>
+    <rect x="395" y="726" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="756" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="761" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">5</text>
+    <text x="455" y="750" fill="#f8fafc" font-size="13" font-weight="600">Send via WhatsApp</text>
+    <text x="455" y="770" fill="#94a3b8" font-size="11">Retry 3× · alert admin on failure</text>
   </g>
+  <path d="M 530 793 L 530 808" stroke="#ec4899" stroke-width="2" marker-end="url(#arr-pink)"/>
 
-  <!-- Arrow n8n → Evolution -->
-  <path d="M 780 475 L 850 520" stroke="#9ca3af" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-
-  <!-- Recipient (bottom) -->
   <g>
-    <circle cx="985" cy="680" r="40" fill="#25d366" opacity="0.9"/>
-    <text x="985" y="673" text-anchor="middle" fill="white" font-size="22">🎂</text>
-    <text x="985" y="692" text-anchor="middle" fill="white" font-size="10" font-weight="600">YOUR FRIEND</text>
-  </g>
-  <path d="M 985 590 L 985 640" stroke="#25d366" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
-  <text x="1010" y="620" fill="#25d366" font-size="11" font-weight="600">WhatsApp</text>
-
-  <!-- Legend -->
-  <g transform="translate(80, 650)">
-    <text x="0" y="0" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="2">DATA FLOW</text>
-    <line x1="0" y1="20" x2="24" y2="20" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="32" y="24" fill="#9ca3af" font-size="11">Real-time request</text>
-    <line x1="0" y1="44" x2="24" y2="44" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
-    <text x="32" y="48" fill="#9ca3af" font-size="11">Scheduled sync</text>
+    <rect x="395" y="813" width="270" height="60" rx="12" fill="#2a0f30" stroke="#5a2061" stroke-width="1"/>
+    <circle cx="425" cy="843" r="18" fill="#ec4899" opacity="0.25"/>
+    <text x="425" y="848" text-anchor="middle" fill="#f9a8d4" font-size="14" font-weight="700">6</text>
+    <text x="455" y="837" fill="#f8fafc" font-size="13" font-weight="600">Log result back to database</text>
+    <text x="455" y="857" fill="#94a3b8" font-size="11">Success or failure · for audit</text>
   </g>
 
-  <!-- Footer tagline -->
-  <text x="600" y="770" text-anchor="middle" fill="#6b7280" font-size="11" font-style="italic">No more forgotten birthdays. No more generic "HBD 🎉" messages.</text>
+  <g filter="url(#card-glow)">
+    <rect x="770" y="260" width="260" height="180" rx="20" fill="#0b1f17" stroke="url(#g-supabase)" stroke-width="1.5"/>
+    <circle cx="825" cy="310" r="24" fill="url(#g-supabase)" opacity="0.2"/>
+    <text x="825" y="320" text-anchor="middle" font-size="24">🗄</text>
+    <text x="860" y="298" fill="#34d399" font-size="10" font-weight="700" letter-spacing="2">DATABASE</text>
+    <text x="860" y="321" fill="#f8fafc" font-size="17" font-weight="700">Supabase</text>
+    <text x="790" y="360" fill="#cbd5e1" font-size="12">• contacts — who to wish</text>
+    <text x="790" y="380" fill="#cbd5e1" font-size="12">• birthday_log — who got wished</text>
+    <text x="790" y="400" fill="#cbd5e1" font-size="12">• sync_log — audit trail</text>
+    <text x="790" y="425" fill="#94a3b8" font-size="11">Postgres, free tier is plenty</text>
+  </g>
+  <text x="748" y="348" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">steps 2, 3, 6</text>
+
+  <g filter="url(#card-glow)">
+    <rect x="770" y="560" width="260" height="180" rx="20" fill="#140a28" stroke="url(#g-ai)" stroke-width="1.5"/>
+    <circle cx="825" cy="610" r="24" fill="url(#g-ai)" opacity="0.2"/>
+    <text x="825" y="620" text-anchor="middle" font-size="24">🤖</text>
+    <text x="860" y="598" fill="#c4b5fd" font-size="10" font-weight="700" letter-spacing="2">AI ENGINE</text>
+    <text x="860" y="621" fill="#f8fafc" font-size="17" font-weight="700">DeepSeek</text>
+    <text x="790" y="660" fill="#cbd5e1" font-size="12">Takes the contact's context</text>
+    <text x="790" y="680" fill="#cbd5e1" font-size="12">and writes something unique</text>
+    <text x="790" y="705" fill="#94a3b8" font-size="11">~18× cheaper than OpenAI</text>
+    <text x="790" y="721" fill="#94a3b8" font-size="11">Swap for any LLM you like</text>
+  </g>
+  <text x="748" y="648" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">step 4</text>
+
+  <g filter="url(#card-glow)">
+    <rect x="1100" y="410" width="260" height="180" rx="20" fill="#0b1f17" stroke="url(#g-wa)" stroke-width="1.5"/>
+    <circle cx="1155" cy="460" r="24" fill="url(#g-wa)" opacity="0.2"/>
+    <text x="1155" y="470" text-anchor="middle" font-size="24">💬</text>
+    <text x="1190" y="448" fill="#4ade80" font-size="10" font-weight="700" letter-spacing="2">DELIVERY</text>
+    <text x="1190" y="471" fill="#f8fafc" font-size="17" font-weight="700">Evolution API</text>
+    <text x="1120" y="510" fill="#cbd5e1" font-size="12">Self-hosted WhatsApp gateway</text>
+    <text x="1120" y="530" fill="#cbd5e1" font-size="12">Linked to your number by QR</text>
+    <text x="1120" y="555" fill="#94a3b8" font-size="11">No Meta Business approval needed</text>
+    <text x="1120" y="571" fill="#94a3b8" font-size="11">Message sent as you</text>
+  </g>
+  <text x="1080" y="498" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">step 5</text>
+
+  <g>
+    <circle cx="1230" cy="720" r="56" fill="url(#g-wa)" opacity="0.15"/>
+    <circle cx="1230" cy="720" r="48" fill="#0b1f17" stroke="#22c55e" stroke-width="2.5"/>
+    <text x="1230" y="730" text-anchor="middle" font-size="34">🎂</text>
+  </g>
+  <text x="1230" y="800" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="700" letter-spacing="2">YOUR FRIEND</text>
+  <text x="1230" y="820" text-anchor="middle" fill="#94a3b8" font-size="11" font-style="italic">receives personal WhatsApp</text>
+
+  <path d="M 300 285 C 335 285, 360 285, 370 310" stroke="#6b7280" stroke-width="2" fill="none" marker-end="url(#arr-muted)" stroke-dasharray="5 5"/>
+  <text x="335" y="278" fill="#94a3b8" font-size="10" font-weight="500">wakes up</text>
+
+  <path d="M 300 525 C 335 525, 360 525, 370 485" stroke="#6b7280" stroke-width="2" fill="none" marker-end="url(#arr-muted)" stroke-dasharray="5 5"/>
+  <text x="340" y="540" fill="#94a3b8" font-size="10" font-weight="500">daily sync</text>
+
+  <path d="M 690 485 C 720 455, 745 370, 770 340" stroke="#10b981" stroke-width="1.8" fill="none" marker-end="url(#arr-green)"/>
+  <path d="M 770 400 C 745 460, 720 520, 690 560" stroke="#10b981" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" stroke-dasharray="5 5"/>
+
+  <path d="M 690 665 C 720 650, 745 640, 770 630" stroke="#a78bfa" stroke-width="1.8" fill="none" marker-end="url(#arr-purple)"/>
+  <path d="M 770 680 C 745 695, 720 680, 690 680" stroke="#a78bfa" stroke-width="1.8" fill="none" marker-end="url(#arr-purple)" stroke-dasharray="5 5"/>
+
+  <path d="M 690 755 C 880 755, 1000 500, 1100 500" stroke="#22c55e" stroke-width="1.8" fill="none" marker-end="url(#arr-green)"/>
+
+  <path d="M 1230 590 L 1230 665" stroke="#22c55e" stroke-width="3" fill="none" marker-end="url(#arr-green)"/>
+
+  <g transform="translate(0, 950)">
+    <rect x="80" y="0" width="290" height="100" rx="14" fill="#1a1f2e" stroke="#334155" stroke-width="1"/>
+    <text x="100" y="28" fill="#f472b6" font-size="11" font-weight="700" letter-spacing="1.5">ZERO MAINTENANCE</text>
+    <text x="100" y="52" fill="#e2e8f0" font-size="13" font-weight="500">Add a friend to Google Contacts.</text>
+    <text x="100" y="72" fill="#cbd5e1" font-size="12">Next year they get wished — no code change.</text>
+
+    <rect x="400" y="0" width="290" height="100" rx="14" fill="#1a1f2e" stroke="#334155" stroke-width="1"/>
+    <text x="420" y="28" fill="#a78bfa" font-size="11" font-weight="700" letter-spacing="1.5">GENUINELY PERSONAL</text>
+    <text x="420" y="52" fill="#e2e8f0" font-size="13" font-weight="500">Tone, language, inside jokes — per person.</text>
+    <text x="420" y="72" fill="#cbd5e1" font-size="12">No two messages ever come out the same.</text>
+
+    <rect x="720" y="0" width="290" height="100" rx="14" fill="#1a1f2e" stroke="#334155" stroke-width="1"/>
+    <text x="740" y="28" fill="#34d399" font-size="11" font-weight="700" letter-spacing="1.5">FULLY OPEN SOURCE</text>
+    <text x="740" y="52" fill="#e2e8f0" font-size="13" font-weight="500">Self-hostable stack. No vendor lock-in.</text>
+    <text x="740" y="72" fill="#cbd5e1" font-size="12">Runs on a $5 VPS. Your data stays yours.</text>
+
+    <rect x="1040" y="0" width="290" height="100" rx="14" fill="#1a1f2e" stroke="#334155" stroke-width="1"/>
+    <text x="1060" y="28" fill="#4ade80" font-size="11" font-weight="700" letter-spacing="1.5">TIMEZONE SMART</text>
+    <text x="1060" y="52" fill="#e2e8f0" font-size="13" font-weight="500">Wishes land at midnight — their midnight.</text>
+    <text x="1060" y="72" fill="#cbd5e1" font-size="12">Not yours. Feels real because it is.</text>
+  </g>
 </svg>
